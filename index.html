@@ -1,0 +1,413 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Advanced To-Do List</title>
+
+<!-- Google Font -->
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+
+<!-- Font Awesome -->
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+
+<style>
+*{
+    margin:0;
+    padding:0;
+    box-sizing:border-box;
+    font-family:'Poppins',sans-serif;
+}
+
+body{
+    min-height:100vh;
+    background:linear-gradient(135deg,#667eea,#764ba2);
+    display:flex;
+    justify-content:center;
+    align-items:flex-start;
+    padding:20px;
+    color:#333;
+    transition:0.4s;
+}
+
+body.dark{
+    background:linear-gradient(135deg,#141e30,#243b55);
+    color:white;
+}
+
+.container{
+    width:100%;
+    max-width:900px;
+    background:rgba(255,255,255,0.15);
+    backdrop-filter:blur(15px);
+    border:1px solid rgba(255,255,255,0.2);
+    border-radius:25px;
+    padding:25px;
+    box-shadow:0 8px 32px rgba(0,0,0,0.2);
+}
+
+body.dark .container{
+    background:rgba(0,0,0,0.2);
+}
+
+header{
+    text-align:center;
+    margin-bottom:25px;
+}
+
+header h1{
+    font-size:28px;
+    color:white;
+}
+
+header p{
+    color:#f1f1f1;
+    margin-top:5px;
+}
+
+#datetime{
+    margin-top:10px;
+    font-weight:500;
+}
+
+.input-section{
+    display:grid;
+    grid-template-columns:2fr 1fr 1fr auto;
+    gap:10px;
+    margin-bottom:20px;
+}
+
+input,select,button{
+    padding:12px;
+    border:none;
+    border-radius:12px;
+    outline:none;
+    font-size:15px;
+}
+
+button{
+    cursor:pointer;
+    background:linear-gradient(135deg,#667eea,#764ba2);
+    color:white;
+    font-weight:600;
+    transition:0.3s;
+}
+
+button:hover{
+    transform:scale(1.05);
+}
+
+.filters{
+    display:flex;
+    gap:10px;
+    flex-wrap:wrap;
+    margin-bottom:20px;
+}
+
+.stats{
+    margin-bottom:15px;
+    font-weight:500;
+    color:white;
+}
+
+ul{
+    list-style:none;
+}
+
+.task{
+    background:rgba(255,255,255,0.25);
+    margin-bottom:12px;
+    padding:15px;
+    border-radius:15px;
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    animation:fadeIn 0.4s ease;
+}
+
+body.dark .task{
+    background:rgba(255,255,255,0.08);
+}
+
+.task-left{
+    display:flex;
+    align-items:center;
+    gap:12px;
+}
+
+.completed span{
+    text-decoration:line-through;
+    opacity:0.6;
+}
+
+.priority{
+    padding:4px 8px;
+    border-radius:8px;
+    color:white;
+    font-size:12px;
+}
+
+.high{background:#ff4d4d;}
+.medium{background:#ffa502;}
+.low{background:#2ed573;}
+
+.task-buttons button{
+    padding:8px 10px;
+    margin-left:5px;
+}
+
+.delete-animation{
+    animation:slideOut 0.4s forwards;
+}
+
+.toast{
+    position:fixed;
+    top:20px;
+    right:-300px;
+    background:#333;
+    color:white;
+    padding:14px 22px;
+    border-radius:12px;
+    transition:0.4s;
+    z-index:1000;
+}
+
+.toast.show{
+    right:20px;
+}
+
+.mode-toggle{
+    margin-top:15px;
+}
+
+@keyframes fadeIn{
+    from{opacity:0;transform:translateY(15px);}
+    to{opacity:1;transform:translateY(0);}
+}
+
+@keyframes slideOut{
+    to{
+        opacity:0;
+        transform:translateX(100%);
+    }
+}
+
+@media(max-width:768px){
+    .input-section{
+        grid-template-columns:1fr;
+    }
+
+    button{
+        width:100%;
+    }
+}
+
+@media(max-width:480px){
+    header h1{
+        font-size:22px;
+    }
+
+    .task{
+        flex-direction:column;
+        align-items:flex-start;
+        gap:10px;
+    }
+
+    .task-buttons{
+        width:100%;
+        display:flex;
+    }
+
+    .task-buttons button{
+        flex:1;
+    }
+}
+</style>
+</head>
+<body>
+
+<div class="toast" id="toast"></div>
+
+<div class="container">
+    <header>
+        <h1>Anjali Petwal</h1>
+        <p>Roll No: [DD241104301026]</p>
+        <div id="datetime"></div>
+        <button class="mode-toggle" onclick="toggleMode()">🌙 Toggle Mode</button>
+    </header>
+
+    <div class="input-section">
+        <input type="text" id="taskInput" placeholder="Enter task">
+        <select id="priority">
+            <option value="High">High</option>
+            <option value="Medium">Medium</option>
+            <option value="Low">Low</option>
+        </select>
+        <input type="date" id="dueDate">
+        <button onclick="addTask()">Add Task</button>
+    </div>
+
+    <div class="stats" id="stats">Total: 0 | Completed: 0 | Pending: 0</div>
+
+    <div class="filters">
+        <button onclick="filterTasks('all')">All</button>
+        <button onclick="filterTasks('active')">Active</button>
+        <button onclick="filterTasks('completed')">Completed</button>
+        <button onclick="clearCompleted()">Clear Completed</button>
+    </div>
+
+    <ul id="taskList"></ul>
+</div>
+
+<script>
+let tasks = JSON.parse(localStorage.getItem("tasks")) || [];
+let filter = "all";
+
+function updateDateTime(){
+    document.getElementById("datetime").innerText =
+        new Date().toLocaleString();
+}
+setInterval(updateDateTime,1000);
+updateDateTime();
+
+function showToast(message){
+    const toast=document.getElementById("toast");
+    toast.innerText=message;
+    toast.classList.add("show");
+    setTimeout(()=>toast.classList.remove("show"),2500);
+}
+
+function saveTasks(){
+    localStorage.setItem("tasks",JSON.stringify(tasks));
+}
+
+function addTask(){
+    const text=document.getElementById("taskInput").value.trim();
+    const priority=document.getElementById("priority").value;
+    const dueDate=document.getElementById("dueDate").value;
+
+    if(text===""){
+        showToast("Enter a task first");
+        return;
+    }
+
+    tasks.push({
+        text,
+        priority,
+        dueDate,
+        completed:false
+    });
+
+    document.getElementById("taskInput").value="";
+    saveTasks();
+    renderTasks();
+    showToast("Task Added Successfully");
+}
+
+function renderTasks(){
+    const list=document.getElementById("taskList");
+    list.innerHTML="";
+
+    let filteredTasks=tasks.filter(task=>{
+        if(filter==="active") return !task.completed;
+        if(filter==="completed") return task.completed;
+        return true;
+    });
+
+    filteredTasks.forEach((task,index)=>{
+        const li=document.createElement("li");
+        li.className=`task ${task.completed ? "completed" : ""}`;
+
+        li.innerHTML=`
+            <div class="task-left">
+                <input type="checkbox" ${task.completed ? "checked" : ""}
+                onchange="toggleComplete(${index})">
+
+                <span>${task.text}</span>
+
+                <span class="priority ${task.priority.toLowerCase()}">${task.priority}</span>
+
+                <small>${task.dueDate || ""}</small>
+            </div>
+
+            <div class="task-buttons">
+                <button onclick="editTask(${index})"><i class="fa-solid fa-pen"></i></button>
+                <button onclick="deleteTask(${index}, this)"><i class="fa-solid fa-trash"></i></button>
+            </div>
+        `;
+        list.appendChild(li);
+    });
+
+    updateStats();
+}
+
+function toggleComplete(index){
+    tasks[index].completed=!tasks[index].completed;
+    saveTasks();
+    renderTasks();
+    showToast("Task Updated");
+}
+
+function editTask(index){
+    const newTask=prompt("Edit task",tasks[index].text);
+    if(newTask){
+        tasks[index].text=newTask;
+        saveTasks();
+        renderTasks();
+        showToast("Task Edited");
+    }
+}
+
+function deleteTask(index,btn){
+    const li=btn.closest(".task");
+    li.classList.add("delete-animation");
+
+    setTimeout(()=>{
+        tasks.splice(index,1);
+        saveTasks();
+        renderTasks();
+        showToast("Task Deleted");
+    },400);
+}
+
+function filterTasks(type){
+    filter=type;
+    renderTasks();
+}
+
+function clearCompleted(){
+    tasks=tasks.filter(task=>!task.completed);
+    saveTasks();
+    renderTasks();
+    showToast("Completed Tasks Cleared");
+}
+
+function updateStats(){
+    const total=tasks.length;
+    const completed=tasks.filter(t=>t.completed).length;
+    const pending=total-completed;
+
+    document.getElementById("stats").innerText=
+        `Total: ${total} | Completed: ${completed} | Pending: ${pending}`;
+}
+
+function toggleMode(){
+    document.body.classList.toggle("dark");
+
+    if(document.body.classList.contains("dark")){
+        localStorage.setItem("theme","dark");
+    }else{
+        localStorage.setItem("theme","light");
+    }
+}
+
+window.onload=()=>{
+    if(localStorage.getItem("theme")==="dark"){
+        document.body.classList.add("dark");
+    }
+    renderTasks();
+};
+</script>
+
+</body>
+</html>
